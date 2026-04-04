@@ -37,7 +37,9 @@ The library includes a suite of CLI and TUI tools for network interaction:
 ```bash
 git clone https://github.com/JahazielLem/spacecan_lib.git
 cd spacecan_lib
-make
+meson setup buildDir
+meson compile -C buildDir
+meson install -C buildDir
 ```
 
 ### Usage Workflow
