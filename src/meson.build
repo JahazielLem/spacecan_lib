@@ -10,7 +10,7 @@ spacecan_lib = library(
     sources: spacecan_sources,
     include_directories: inc_dirs,
     dependencies: [curses_dep],
-    version: meson.project_version(),
+    version: lib_version,
     soversion: '0',
     install: true
 )
