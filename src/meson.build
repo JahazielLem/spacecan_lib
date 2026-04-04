@@ -1,13 +1,17 @@
 # Include directories
 inc_dirs = include_directories('.')
 
-# Source files for SparkCLI library
-spacecan_sources = files(['frame.c', 'node.c', 'bus.c'])
+curses_dep = dependency('ncurses')
+
+spacecan_sources = files(['frame.c', 'node.c', 'bus.c', 'busd.c', 'sensor.c', 'motor.c', 'battery.c'])
 # Library target
 spacecan_lib = library(
     'spacecan',
     sources: spacecan_sources,
     include_directories: inc_dirs,
+    dependencies: [curses_dep],
+    version: meson.project_version(),
+    soversion: '0',
     install: true
 )
 
@@ -17,6 +21,10 @@ install_headers(
     'frame.h',
     'node.h',
     'bus.h',
+    'busd.h',
+    'sensor.h',
+    'motor.h',
+    'battery.h',
     subdir: 'spacecan'
 )
 

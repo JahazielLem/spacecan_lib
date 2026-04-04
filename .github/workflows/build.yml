@@ -1,0 +1,78 @@
+name: Meson Build and Release
+
+permissions:
+  contents: read
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  build_library:
+    strategy:
+      matrix:
+        sys:
+          - { name: "Ubuntu x64", runner: ubuntu-latest, os: Ubuntu, shell: bash }
+          - { name: "Ubuntu ARM", runner: ubuntu-24.04-arm, os: Ubuntu, shell: bash }
+          - { name: "MacOS ARM", runner: macos-latest, os: MacOS, shell: bash }
+          - { name: "MacOS x64", runner: macos-15-intel, os: MacOS, shell: bash }
+
+    name: Build on ${{ matrix.sys.name }}
+    runs-on: ${{ matrix.sys.runner }}
+    defaults:
+      run:
+        shell: ${{ matrix.sys.shell }}
+
+    steps:
+      - name: Install dependencies (Ubuntu)
+        if: matrix.sys.os == 'Ubuntu'
+        run: |
+          sudo apt-get update
+          sudo apt-get install meson libncurses5-dev libncursesw5-dev
+
+      - name: Install dependencies (Mac OS)
+        if: matrix.sys.os == 'MacOS'
+        run: |
+          brew install meson
+          brew install ncurses
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Configure
+        run: meson setup build
+
+      - name: Build
+        run: meson compile -v -C build
+
+      - name: Test
+        run: meson test -v -C build
+
+      - name: Archive Binaries
+        run: tar -czvf spacecan-${{ matrix.os }}.tar.gz -C install .
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries-${{ matrix.os }}
+          path: spacecan-${{ matrix.os }}.tar.gz
+
+  release:
+    name: Create Release
+    needs: build_library
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            binaries-ubuntu-latest/spacecan-ubuntu-latest.tar.gz
+            binaries-macos-latest/spacecan-macos-latest.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

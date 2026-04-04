@@ -1,37 +1,51 @@
 # Examples directory for SpaceCAN
-controller_demo = executable(
-    'controller_demo',
+controller = executable(
+    'controller',
     'controller.c',
     dependencies: [spacecan_dep],
     install: false
 )
-segmentation_demo = executable(
-    'segmentation_demo',
+segmentation = executable(
+    'segmentation',
     'segmentation.c',
     dependencies: [spacecan_dep],
     install: false
 )
-spacecansniffer_demo = executable(
-    'spacecansniffer_demo',
-    'spacecansniffer.c',
+scsniffer = executable(
+    'scsniffer',
+    'scsniffer.c',
     dependencies: [spacecan_dep],
     install: false
 )
-injection_demo = executable(
-    'injection_demo',
-    'injection.c',
+scinjection = executable(
+    'scinjection',
+    'scinjection.c',
     dependencies: [spacecan_dep],
     install: false
 )
-replay_demo = executable(
-    'replay_demo',
-    'replay.c',
+screeplay = executable(
+    'screeplay',
+    'screplay.c',
     dependencies: [spacecan_dep],
+    install: false
+)
+scmonitor = executable(
+    'scmonitor',
+    'scmonitor.c',
+    dependencies: [spacecan_dep, curses_dep],
+    install: false
+)
+scviewer = executable(
+    'scviewer',
+    'scviewer.c',
+    dependencies: [spacecan_dep, curses_dep],
     install: false
 )
 
-test('screplay', replay_demo)
-test('scinjection', injection_demo)
-test('scsniffer', spacecansniffer_demo)
-test('segmentation_demo', segmentation_demo)
-test('controller_demo', controller_demo)
+test('scviewer', scviewer)
+test('scmonitor', scmonitor)
+test('screplay', screeplay)
+test('scinjection', scinjection)
+test('scsniffer', scsniffer)
+test('segmentation', segmentation)
+test('controller', controller)

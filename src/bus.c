@@ -4,7 +4,6 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <sys/select.h>
-#include <signal.h>
 #include <time.h>
 
 #define BUS_SOCKET_PATH "/tmp/spacecan.sock"
@@ -22,7 +21,8 @@ int sc_bus_create_server_socket(void) {
 
   unlink(BUS_SOCKET_PATH);
 
-  bind(fd, (struct sockaddr*)&addr, sizeof(addr));
+  const int ret = bind(fd, (struct sockaddr*)&addr, sizeof(addr));
+  if (ret < 0) { return -1; }
   listen(fd, 5);
 
   server_bus.client_count = 0;
@@ -57,7 +57,7 @@ int sc_bus_connect(void) {
   addr.sun_family = AF_UNIX;
   strcpy(addr.sun_path, BUS_SOCKET_PATH);
 
-  // fcntl(fd, F_SETFL, O_NONBLOCK);
+  fcntl(fd, F_SETFL, O_NONBLOCK);
 
   if (connect(fd, (struct sockaddr*)&addr, sizeof(addr)) < 0){
     return -1;
@@ -113,7 +113,7 @@ void sc_bus_poll(void){
   }
 }
 
-void sc_bus_broadcast(int sender_fd, bus_packet_t *pkt) {
+void sc_bus_broadcast(int sender_fd, const bus_packet_t *pkt) {
   for (size_t i = 0; i < server_bus.client_count;){
     int fd = server_bus.clients[i].client_fd;
 
@@ -141,7 +141,7 @@ int sc_bus_add_node(spacecan_bus_t *bus, spacecan_bus_node_t *node) {
   return 0;
 }
 
-void sc_bus_transmit(spacecan_bus_t *bus, spacecan_bus_node_t *sender, spacecan_frame_t *frame){
+void sc_bus_transmit(const spacecan_bus_t *bus, const spacecan_bus_node_t *sender, spacecan_frame_t *frame){
   for (size_t i = 0; i < bus->node_count; i++){
     spacecan_bus_node_t *node = bus->nodes[i];
 
@@ -151,7 +151,7 @@ void sc_bus_transmit(spacecan_bus_t *bus, spacecan_bus_node_t *sender, spacecan_
   }
 }
 
-int sc_bus_send(int fd, spacecan_frame_t *frame) {
+ssize_t sc_bus_send(int fd, const spacecan_frame_t *frame) {
   struct timespec ts;
   clock_gettime(CLOCK_REALTIME, &ts);
 
@@ -171,20 +171,29 @@ int sc_bus_receive(int fd, bus_packet_t *pkt) {
   return 0;
 }
 
-void sc_bus_node_send_heartbeat(int fd, spacecan_bus_node_t *node, uint32_t now_ms) {
-  if (now_ms - node->last_heartbeat_ms >= node->heartbeat_interval_ms) {
+void sc_bus_node_send_heartbeat(int fd, spacecan_bus_node_t *node) {
+  const uint32_t now = sc_get_monotonic_ms();
+  if (now - node->last_heartbeat_ms >= node->heartbeat_interval_ms) {
     spacecan_frame_t frame;
     sc_build_heartbeat(&frame, node->node_id, node->state);
     sc_bus_send(fd, &frame);
-    node->last_heartbeat_ms = now_ms;
+    node->last_heartbeat_ms = now;
   }
 }
 
-void sc_bus_node_send_sync(int fd, spacecan_bus_node_t *node, uint32_t now_ms) {
-  if (now_ms - node->last_heartbeat_ms >= node->heartbeat_interval_ms) {
+void sc_bus_node_send_sync(int fd, spacecan_bus_node_t *node) {
+  const uint32_t now = sc_get_monotonic_ms();
+  if (now - node->last_heartbeat_ms >= node->heartbeat_interval_ms) {
     spacecan_frame_t frame;
     sc_build_sync(&frame, node->node_id);
     sc_bus_send(fd, &frame);
-    node->last_heartbeat_ms = now_ms;
+    node->last_heartbeat_ms = now;
   }
+}
+
+
+uint32_t sc_get_monotonic_ms(void) {
+  struct timespec ts;
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  return ts.tv_sec * 1000UL + ts.tv_nsec / 1000000UL;
 }

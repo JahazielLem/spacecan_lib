@@ -76,7 +76,7 @@ int sc_reassembly_packets(spacecan_reassembly_ctx_t *ctx, const spacecan_frame_t
     memset(ctx->received_mask, 0, sizeof(ctx->received_mask));
   }
 
-  if(ctx->active && (now_ms - ctx->last_update_ms) > SC_REASSEMBLY_TIMEOUT_MS){
+  if(now_ms - ctx->last_update_ms > SC_REASSEMBLY_TIMEOUT_MS){
     sc_reassembly_reset(ctx);
   }
 

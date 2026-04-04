@@ -1,4 +1,4 @@
-/* examples - injection.c
+/* examples - scinjection.c
  *
  * spacecan_lib - By astrobyte 17/02/26.
  *
@@ -20,7 +20,7 @@ static void print_frame(spacecan_frame_t *f){
 
 int main(int argc, char *argv[]) {
   if (argc < 3) {
-    printf("Usage: %s <CANID> <byte0> [byte1...]\n", argv[0]);
+    printf("Usage: %s <CANID> <dlc> [byte1...]\n", argv[0]);
     return 1;
   }
   int fd = sc_bus_connect();

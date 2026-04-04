@@ -55,6 +55,7 @@ typedef struct {
 
 static inline uint16_t sc_frame_id_req(uint8_t node_id) { return CANID_REQ + (node_id & CAN_NODE_MASK); }
 static inline uint16_t sc_frame_id_rep(uint8_t node_id) { return CANID_REP + (node_id & CAN_NODE_MASK); }
+static inline uint8_t sc_frame_get_id_rep(uint16_t frame_id) {return (frame_id - CANID_REP) & CAN_NODE_MASK;}
 
 int sc_build_request(spacecan_frame_t *frame, uint8_t node_id, const uint8_t *payload, size_t len);
 int sc_build_reply(spacecan_frame_t *frame, uint8_t node_id, const uint8_t *payload, size_t len);

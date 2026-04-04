@@ -1,4 +1,4 @@
-/* examples - spacecansniffer.c
+/* examples - scsniffer.c
  *
  * spacecan_lib - By astrobyte 17/02/26.
  *
