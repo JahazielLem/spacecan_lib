@@ -1,6 +1,6 @@
 # SpaceCAN Library
 
-[![Build Status](https://github.com/JahazielLem/spacecan_lib/actions/workflows/build-release.yml/badge.svg)](https://github.com/JahazielLem/spacecan_lib/actions)
+[![Build Status](https://github.com/JahazielLem/spacecan_lib/actions/workflows/build.yml/badge.svg)](https://github.com/JahazielLem/spacecan_lib/actions)
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg)](https://opensource.org/licenses/GPL-3.0)
 
 A high-performance, lightweight C implementation of the **SpaceCAN** protocol. Designed for modular spacecraft communication and research, this library provides a simulated environment to test satellite bus architectures, telemetry flows, and cybersecurity vulnerabilities (ICS-style) without requiring physical hardware.
