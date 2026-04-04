@@ -3,73 +3,90 @@ name: Meson Build and Release
 permissions:
   contents: read
 
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
 
 jobs:
   build_library:
     strategy:
       matrix:
         sys:
-          - { name: "Ubuntu x64", runner: ubuntu-latest, os: Ubuntu, shell: bash }
-          - { name: "Ubuntu ARM", runner: ubuntu-24.04-arm, os: Ubuntu, shell: bash }
-          - { name: "MacOS ARM", runner: macos-latest, os: MacOS, shell: bash }
-          - { name: "MacOS x64", runner: macos-15-intel, os: MacOS, shell: bash }
+          - { name: "ubuntu-x64", runner: ubuntu-latest, os: Ubuntu, shell: bash }
+          - { name: "ubuntu-arm", runner: ubuntu-24.04-arm, os: Ubuntu, shell: bash }
+          - { name: "macos-arm", runner: macos-latest, os: MacOS, shell: bash }
+          - { name: "macos-x64", runner: macos-15-intel, os: MacOS, shell: bash }
 
     name: Build on ${{ matrix.sys.name }}
     runs-on: ${{ matrix.sys.runner }}
+
     defaults:
       run:
         shell: ${{ matrix.sys.shell }}
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Install dependencies (Ubuntu)
         if: matrix.sys.os == 'Ubuntu'
         run: |
           sudo apt-get update
-          sudo apt-get install meson libncurses5-dev libncursesw5-dev
+          sudo apt-get install -y \
+            meson \
+            ninja-build \
+            pkg-config \
+            libncurses5-dev \
+            libncursesw5-dev
 
-      - name: Install dependencies (Mac OS)
+      - name: Install dependencies (MacOS)
         if: matrix.sys.os == 'MacOS'
         run: |
-          brew install meson
-          brew install ncurses
-
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
+          brew install meson ninja pkg-config ncurses
 
       - name: Configure
-        run: meson setup build
+        run: meson setup build --prefix=${{ github.workspace }}/dist
 
       - name: Build
-        run: meson compile -v -C build
+        run: meson compile -C build -v
 
-      - name: Archive Binaries
-        run: tar -czvf spacecan-${{ matrix.os }}.tar.gz -C install .
+      - name: Install
+        run: meson install -C build
 
-      - name: Upload Artifacts
+      - name: Create archive
+        run: |
+          tar -czvf spacecan-${{ matrix.sys.name }}.tar.gz -C ${{ github.workspace }}/dist .
+
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: binaries-${{ matrix.os }}
-          path: spacecan-${{ matrix.os }}.tar.gz
+          name: binaries-${{ matrix.sys.name }}
+          path: spacecan-${{ matrix.sys.name }}.tar.gz
 
   release:
     name: Create Release
     needs: build_library
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
+
     permissions:
       contents: write
+
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: List artifacts (debug)
+        run: ls -R artifacts
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            binaries-ubuntu-latest/spacecan-ubuntu-latest.tar.gz
-            binaries-macos-latest/spacecan-macos-latest.tar.gz
+          files: artifacts/**/*.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
