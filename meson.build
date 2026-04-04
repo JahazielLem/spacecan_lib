@@ -2,6 +2,8 @@ project('spacecan', 'c',
         version : '0.0.1',
         default_options : ['warning_level=3', 'c_std=c11'])
 
+add_project_arguments('-D_DEFAULT_SOURCE', '-D_POSIX_C_SOURCE=2000809L', language: 'c')
+
 raw_version = run_command('git', '-C', meson.project_source_root(), 'describe', '--tags', '--always', check: false).stdout().strip()
 lib_version = raw_version.split('-')[0]
 
