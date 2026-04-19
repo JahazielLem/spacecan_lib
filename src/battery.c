@@ -12,7 +12,7 @@
 static spacecan_bus_node_t battery_node;
 static int batter_fd;
 static uint32_t last_telemetry = 0;
-static uint8_t  value = 0;
+static uint8_t  value = 80;
 
 static void rx_callback(spacecan_bus_node_t *self, spacecan_frame_t *f) {
   if (sc_frame_get_id_rep(f->can_id) != self->node_id) { return;}
@@ -67,7 +67,6 @@ void sc_battery_worker(void){
 
   // Fake telemetry every ~800 ms
   if (now - last_telemetry >= 5000) {
-    value = rand() % 100;
     uint8_t payload[2];
     payload[0] = 0x10; // Telemetry ID
     payload[1] = value;

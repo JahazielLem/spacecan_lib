@@ -26,22 +26,21 @@ long now_ns(void) {
 }
 
 void draw_bar(WINDOW *win, int y, int x, int width, int value, int max) {
-  float ratio = (float) value / max;
-  int filled = ratio * width;
+  int filled = (value * width) / max;
 
   mvwprintw(win, y, x, "[");
 
   for (int i = 0; i < width; i++) {
     if (i < filled) {
       wattron(win, COLOR_PAIR(1));
-      wprintw(win, "#");
+      waddch(win, '#');
       wattroff(win, COLOR_PAIR(1));
     } else {
-      wprintw(win, " ");
+      waddch(win, ' ');
     }
   }
 
-  wprintw(win, "] %3d%%", value);
+  wprintw(win, "] %3d", value);
 }
 
 void render_ui(WINDOW *header, WINDOW *left, WINDOW *right, WINDOW *bottom) {
@@ -61,10 +60,13 @@ void render_ui(WINDOW *header, WINDOW *left, WINDOW *right, WINDOW *bottom) {
   mvwprintw(left, 5, 4, "Y: %4d", state.sensor_y);
   mvwprintw(left, 6, 4, "Z: %4d", state.sensor_z);
 
-  mvwprintw(left, 8, 2, "MOTORS");
-  mvwprintw(left, 10, 4, "X: %4d", state.motor_x);
-  mvwprintw(left, 11, 4, "Y: %4d", state.motor_y);
-  mvwprintw(left, 12, 4, "Z: %4d", state.motor_z);
+  mvwprintw(left, 8, 2, "Thrusters");
+  mvwprintw(left, 10, 4, "Thruster 0: %4d", state.motor_x);
+  draw_bar(left, 11, 4, 40, state.motor_x, 100);
+  mvwprintw(left, 13, 4, "Thruster 1: %4d", state.motor_y);
+  draw_bar(left, 14, 4, 40, state.motor_y, 100);
+  mvwprintw(left, 16, 4, "Thruster 2: %4d", state.motor_z);
+  draw_bar(left, 17, 4, 40, state.motor_z, 100);
 
   wrefresh(left);
 
@@ -114,14 +116,14 @@ int main(void) {
   while (1) {
     bus_packet_t pkt;
     if (sc_bus_receive(fd, &pkt) == 0) {
-      if (pkt.frame.can_id == 0x304) {
+      if (pkt.frame.can_id == 0x301) {
+        state.sensor_x = pkt.frame.buffer[1];
+        state.sensor_y = pkt.frame.buffer[2];
+        state.sensor_z = pkt.frame.buffer[3];
+      } else if (pkt.frame.can_id == 0x304) {
         state.motor_x = pkt.frame.buffer[1];
         state.motor_y = pkt.frame.buffer[1];
         state.motor_z = pkt.frame.buffer[1];
-      } else if (pkt.frame.can_id == 0x301) {
-        state.sensor_x = pkt.frame.buffer[1];
-        state.sensor_y = pkt.frame.buffer[1];
-        state.sensor_z = pkt.frame.buffer[1];
       } else if (pkt.frame.can_id == 0x307) {
         state.battery = pkt.frame.buffer[1];
       }

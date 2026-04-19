@@ -12,7 +12,6 @@
 static spacecan_bus_node_t sensor_node;
 static int sensor_fd;
 static uint32_t last_telemetry = 0;
-static uint8_t  value = 0;
 
 static void rx_callback(spacecan_bus_node_t *self, spacecan_frame_t *f) {
   printf("[Node %02x] ← ID=0x%03x DLC=%d  ", self->node_id, f->can_id, f->dlc);
@@ -59,15 +58,14 @@ void sc_sensor_worker(void){
 
   // Fake telemetry every ~800 ms
   if (now - last_telemetry >= 800) {
-    uint8_t payload[2];
+    uint8_t payload[4];
     payload[0] = 0x10; // Telemetry ID
-    payload[1] = value++;
+    payload[1] = rand() % 100;
+    payload[2] = rand() % 100;
+    payload[3] = rand() % 100;
 
-    if (value > 10){
-      value = 0;
-    }
     spacecan_frame_t f;
-    sc_build_reply(&f, sensor_node.node_id, payload, 2);
+    sc_build_reply(&f, sensor_node.node_id, payload, sizeof(payload));
     sc_bus_send(sensor_fd, &f);
     last_telemetry = now;
   }
