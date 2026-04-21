@@ -35,6 +35,9 @@ The library includes a suite of CLI and TUI tools for network interaction:
 
 ### Installation
 ```bash
+sudo apt update
+sudo apt install meson libncurses-dev
+
 git clone https://github.com/JahazielLem/spacecan_lib.git
 cd spacecan_lib
 meson setup buildDir
