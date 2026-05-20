@@ -5,6 +5,8 @@
 
 A high-performance, lightweight C implementation of the **SpaceCAN** protocol. Designed for modular spacecraft communication and research, this library provides a simulated environment to test satellite bus architectures, telemetry flows, and cybersecurity vulnerabilities (ICS-style) without requiring physical hardware.
 
+> **Note:** This version 1.0.0, is not a full implementation of the https://librecube.gitlab.io/standards/spacecan/
+
 ## Core Features
 
 * **Standard Compliance**: Implementation of SpaceCAN ID management (Request/Reply frames).
